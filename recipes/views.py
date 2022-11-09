@@ -50,13 +50,14 @@ def read_recipe(request, id):
         vals["quantity"] = ingredient.quantity
         ingredients_list.append(vals)
 
-    steps = recipe.step_set.all()
+    steps = recipe.step_set.all().order_by("step_number")
     steps_list = []
     for step in steps:
         steps_list.append(step.step)
 
     return JsonResponse(
         {
+            "id": id,
             "recipe": recipe.recipe_name,
             "ingredients": ingredients_list,
             "steps": steps_list,
@@ -74,7 +75,7 @@ def create_recipe(request):
 
         for ingredient in data["ingredients"]:
             new_ingredient = RequiredIngredient(
-                ingredient_name=ingredient["name"],
+                ingredient_name=ingredient["ingredientName"],
                 unit=ingredient["unit"],
                 quantity=ingredient["quantity"],
                 recipe=new_recipe,
@@ -105,7 +106,7 @@ def update_recipe(request, id):
             RequiredIngredient.objects.filter(recipe=recipe).delete()
             for ingredient in data["ingredients"]:
                 new_ingredient = RequiredIngredient(
-                    ingredient_name=ingredient["name"],
+                    ingredient_name=ingredient["ingredientName"],
                     unit=ingredient["unit"],
                     quantity=ingredient["quantity"],
                     recipe=recipe,
@@ -142,6 +143,7 @@ def cook_recipe(request, id):
     return JsonResponse({"error": "Not a PUT"})
 
 
+@csrf_exempt
 def delete_recipe(request, id):
     if request.method == "DELETE":
         Recipe.objects.filter(id=id).delete()
